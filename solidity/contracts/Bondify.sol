@@ -26,15 +26,35 @@ nodes will just read the data and return it to you right away.
         int coupon;
         int price;
         uint timestamp;
+        string name;
+        address issuer;
     }
+
     struct User {
         bytes32[] myBonds;
   }
 
 
-  function addBondToUser(bytes32 SHA256notaryHash) private returns (bool success) {
 
-       address thisNewAddress = msg.sender;
+
+function createBond(int principal, int maturity, int coupon, int price, string memory name) private returns (bool success) {
+
+    address thisNewAddress = msg.sender;
+    notarizedBond memory bond = notarizedBond({
+      principal: principal,
+      maturity: maturity,
+      coupon: coupon,
+      price: price,
+      name: name,
+      issuer: msg.sender,
+      timestamp: block.timestamp
+    });
+
+    
+    bytes32 SHA256notaryHash = sha256(bond);
+    if(bytes(notarizedBonds[SHA256notaryHash].name).length == 0) {
+          bondsByNotaryHash.push(SHA256notaryHash); // adds entry for this bond to our bond whitepages
+        }
 
   }
 
