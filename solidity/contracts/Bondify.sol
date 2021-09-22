@@ -10,7 +10,7 @@ contract Aion {
 
 }
 
-contract Bondify is ERC721URIStorage, ERC721Burnable {
+contract Bondify is ERC721URIStorage {
 
   uint256 public tokenCounter;
   enum Compounding{ANNUAL, MONTHLY, WEEKLY, DAILY, CONTINOUS}
@@ -28,22 +28,23 @@ contract Bondify is ERC721URIStorage, ERC721Burnable {
 
 
   function excersizeBond(string memory bondURI) external {
-    itemID = _tokenURIs[bondURI];
-    require(_exists(tokenId), "ERC721URIStorage: URI query for nonexistent token");
-    expiry = tokenIdToExpiryDate[itemID];
-    payout = tokenIdToPayout[itemID];
-    issuer = itemIdToSender[itemID];
-    require(owner(bondURI) == msg.sender, "you do not own this bond");
-    require(owner(bondURI) != issuer, "you cannot excersize a bond you issued");
+    uint256 itemID = tokenURI(bondURI);
+    require(_exists(itemID), "ERC721URIStorage: URI query for nonexistent token");
+    uint256 expiry = tokenIdToExpiryDate[itemID];
+    uint256 payout = tokenIdToPayout[itemID];
+    address issuer = itemIdToSender[itemID];
+    address owner = ownerOf(itemID);
+    require(owner == msg.sender, "you do not own this bond");
+    require(owner != issuer, "you cannot excersize a bond you issued");
     require(payout <= block.timestamp, "tried to get bond payout before bond expires!");
     //send something to a payments contract
-    token.transferFrom(issuer,owner(bondURI), payout);
+    Transfer(issuer, owner, payout);
 
   }
 
 
   function createBond(string memory bondURI,uint256 principal,uint256 payout,uint256 expiryDate) external returns (uint256) {
-    verifyBond(princiapl, payout, expiryDate);
+    verifyBond(principal, payout, expiryDate);
     uint256 newItemId = tokenCounter;
     tokenCounter = tokenCounter + 1;
     _safeMint(msg.sender, newItemId);
@@ -58,7 +59,7 @@ contract Bondify is ERC721URIStorage, ERC721Burnable {
 
   }
 
-  function verifyBond(uint256 principal, uint256 payout, uint256 expiryDate) private returns (void) {
+  function verifyBond(uint256 principal, uint256 payout, uint256 expiryDate) private {
     require(principal >0, 'principal cannot be 0');
     require(payout > principal, 'payout must be greater than principal');
     require(expiryDate > block.timestamp, 'bond must expire in the future');
