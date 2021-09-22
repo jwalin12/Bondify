@@ -27,18 +27,29 @@ contract Bondify is ERC721URIStorage, ERC721Burnable {
     }
 
 
-  function verifyPayout(string memory bondURI) {
-    itemID = 
+  function excersizeBond(string memory bondURI) external {
+    itemID = _tokenURIs[bondURI];
+    require(_exists(tokenId), "ERC721URIStorage: URI query for nonexistent token");
+    expiry = tokenIdToExpiryDate[itemID];
+    payout = tokenIdToPayout[itemID];
+    issuer = itemIdToSender[itemID];
+    require(owner(bondURI) == msg.sender, "you do not own this bond");
+    require(owner(bondURI) != issuer, "you cannot excersize a bond you issued");
+    require(payout <= block.timestamp, "tried to get bond payout before bond expires!");
+    //send something to a payments contract
+    token.transferFrom(issuer,owner(bondURI), payout);
+
   }
 
 
-  function createBond(string memory bondURI,uint256 principal,uint256 payout,uint256 expiryDate) public returns (uint256) {
+  function createBond(string memory bondURI,uint256 principal,uint256 payout,uint256 expiryDate) external returns (uint256) {
+    verifyBond(princiapl, payout, expiryDate);
     uint256 newItemId = tokenCounter;
+    tokenCounter = tokenCounter + 1;
     _safeMint(msg.sender, newItemId);
     itemIdToSender[newItemId] = msg.sender;
     _setTokenURI(newItemId, bondURI);
     itemIdToTokenURI[newItemId] = bondURI;
-    tokenCounter = tokenCounter + 1;
     tokenIdToPrincipal[newItemId] = principal;
     tokenIdToPayout[newItemId] = payout;
     tokenIdToIssuanceDate[newItemId] = block.timestamp;
@@ -47,10 +58,15 @@ contract Bondify is ERC721URIStorage, ERC721Burnable {
 
   }
 
+  function verifyBond(uint256 principal, uint256 payout, uint256 expiryDate) private returns (void) {
+    require(principal >0, 'principal cannot be 0');
+    require(payout > principal, 'payout must be greater than principal');
+    require(expiryDate > block.timestamp, 'bond must expire in the future');
+  }
+
 
 
   //TODO: figure out how to do bond payouts
-
 
   //TODO: figure out how to access structs/display mapping info
 
