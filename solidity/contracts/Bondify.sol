@@ -3,12 +3,6 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 
 
-// interface Aion
-contract Aion {
-    uint256 public serviceFee;
-    function ScheduleCall(uint256 blocknumber, address to, uint256 value, uint256 gaslimit, uint256 gasprice, bytes memory data, bool schedType) public payable returns (uint,address);
-
-}
 
 contract Bondify is ERC721URIStorage {
 
@@ -20,33 +14,32 @@ contract Bondify is ERC721URIStorage {
   mapping(uint256=> uint256) public tokenIdToPayout; 
   mapping (uint256 => uint256) tokenIdToIssuanceDate;
   mapping (uint256 => uint256) tokenIdToExpiryDate;
-  Aion aion;
 
   constructor() public ERC721("Bond", "BOND") {
     tokenCounter = 0;
     }
 
 
-  function excersizeBond(string memory bondURI) external {
-    uint256 itemID = tokenURI(bondURI);
-    require(_exists(itemID), "ERC721URIStorage: URI query for nonexistent token");
-    uint256 expiry = tokenIdToExpiryDate[itemID];
-    uint256 payout = tokenIdToPayout[itemID];
-    address issuer = itemIdToSender[itemID];
-    address owner = ownerOf(itemID);
+  function excersizeBond(uint256 tokenId) external {
+    require(_exists(tokenId), "ERC721URIStorage: URI query for nonexistent token");
+    uint256 expiry = tokenIdToExpiryDate[tokenId];
+    uint256 payout = tokenIdToPayout[tokenId];
+    address issuer = itemIdToSender[tokenId];
+    address owner = ownerOf(tokenId);
     require(owner == msg.sender, "you do not own this bond");
     require(owner != issuer, "you cannot excersize a bond you issued");
-    require(payout <= block.timestamp, "tried to get bond payout before bond expires!");
+    require(expiry <= block.timestamp, "tried to get bond payout before bond expires!");
     //send something to a payments contract
-    Transfer(issuer, owner, payout);
+    emit Transfer(issuer, owner, payout);
 
   }
 
 
-  function createBond(string memory bondURI,uint256 principal,uint256 payout,uint256 expiryDate) external returns (uint256) {
+  function createBond(uint256 principal,uint256 payout,uint256 expiryDate) external returns (uint256) {
     verifyBond(principal, payout, expiryDate);
     uint256 newItemId = tokenCounter;
     tokenCounter = tokenCounter + 1;
+    string memory bondURI = tokenURI(newItemId);
     _safeMint(msg.sender, newItemId);
     itemIdToSender[newItemId] = msg.sender;
     _setTokenURI(newItemId, bondURI);
@@ -59,7 +52,7 @@ contract Bondify is ERC721URIStorage {
 
   }
 
-  function verifyBond(uint256 principal, uint256 payout, uint256 expiryDate) private {
+  function verifyBond(uint256 principal, uint256 payout, uint256 expiryDate) private view {
     require(principal >0, 'principal cannot be 0');
     require(payout > principal, 'payout must be greater than principal');
     require(expiryDate > block.timestamp, 'bond must expire in the future');
