@@ -19,7 +19,7 @@ contract Bondify is ERC721URIStorage {
   mapping (address => uint256) ETHBalances;
 
   constructor() ERC721("Bond", "BOND") {
-    tokenCounter = 0;
+    tokenCounter = 1;
     }
 
 
@@ -40,6 +40,7 @@ contract Bondify is ERC721URIStorage {
     tokenIdToPayout[newItemId] = payout;
     tokenIdToIssuanceDate[newItemId] = block.timestamp;
     tokenIdToExpiryDate[newItemId] = expiryDate;
+    console.log(newItemId, "created bond");
     return newItemId;
 
   }
@@ -53,15 +54,18 @@ contract Bondify is ERC721URIStorage {
     //called by owner of bond to get payment after expiry
   function excersizeBond(uint256 tokenId) external payable {
     require(_exists(tokenId), "ERC721URIStorage: URI query for nonexistent token");
+    console.log(tokenId," attemping to excersizing bond");
     uint256 expiry = tokenIdToExpiryDate[tokenId];
     uint256 payout = tokenIdToPayout[tokenId];
     address issuer = itemIdToSender[tokenId];
     address owner = ownerOf(tokenId);
+    
     require(owner == msg.sender, "you do not own this bond");
     require(owner != issuer, "you cannot excersize a bond you issued");
     require(expiry <= block.timestamp, "tried to get bond payout before bond expires!");
     //send something to a payments contract
     require(ETHBalances[issuer]>= payout, 'not enough funds deposited by issuer to honor bond!');
+    console.log("checks passed");
     //call default function
     ETHBalances[issuer] = ETHBalances[issuer] - (payout);
     ETHBalances[owner] = ETHBalances[owner] + (payout);
