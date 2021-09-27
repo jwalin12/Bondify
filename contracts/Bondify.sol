@@ -27,6 +27,7 @@ contract Bondify is ERC721URIStorage {
 
   //called by bond issuer to create bond
   function createBond(uint256 principal,uint256 payout,uint256 expiryDate) external returns (uint256) {
+    
     verifyBond(principal, payout, expiryDate);
     uint256 newItemId = tokenCounter;
     console.log(newItemId);
@@ -48,7 +49,11 @@ contract Bondify is ERC721URIStorage {
   function verifyBond(uint256 principal, uint256 payout, uint256 expiryDate) private view {
     require(principal >0, 'principal must be greater than 0');
     require(payout > principal, 'payout must be greater than principal');
-    require(expiryDate > block.timestamp, 'bond must expire in the future');
+    uint256 time = block.timestamp;
+    console.log("CURR TIME", time);
+    console.log("EXPIRY TIME", expiryDate);
+    console.log(expiryDate >= time);
+    require(expiryDate >= time, 'bond must expire in the future');
   }
 
     //called by owner of bond to get payment after expiry

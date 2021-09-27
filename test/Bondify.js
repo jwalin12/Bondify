@@ -67,7 +67,7 @@ describe('Bondify contract', () => {
             [issuer, buyer] = await ethers.getSigners();
             let bondId;
             bondId = await bondify.createBond(10, 11, 100000000000);
-            await network.provider.send("evm_setNextBlockTimestamp", [1000000000005]);
+            await network.provider.send("evm_setNextBlockTimestamp", [100000000005]);
             await network.provider.send("evm_mine");
             //use hardhat setTime to set time before running
             bondify.transferFrom(issuer.address, buyer.address, 1); //TODO: figure out why this fails if bondId is passed in
@@ -80,43 +80,20 @@ describe('Bondify contract', () => {
 
         });
 
-        it('should fail when bond is transferred between users and older user tries to  excersize', async () => {
+        it('should work when bond is transferred between users and new owner tries to  excersize', async () => {
             let Bondify, bondify, issuer, buyer, buyer2;
             Bondify = await ethers.getContractFactory("Bondify");
             bondify = await Bondify.deploy();
             [issuer, buyer, buyer2] = await ethers.getSigners();
             let bondId;
-            await network.provider.send("evm_setNextBlockTimestamp", [1000000000010]);
+            await network.provider.send("evm_setNextBlockTimestamp", [1000000000025]);
             await network.provider.send("evm_mine");
-            bondId = await bondify.createBond(10, 11, 100000000015);
+            bondId = await bondify.createBond(10, 11, 1000000000030);
+            await network.provider.send("evm_setNextBlockTimestamp", [1000000000035]);
+            await network.provider.send("evm_mine");
             //use hardhat setTime to set time before running
             await bondify.transferFrom(issuer.address, buyer.address, 1); //TODO: figure out why this fails if bondId is passed in
-            await bondify.transferFrom(buyer.address, buyer2.address, 1);
-            await issuer.sendTransaction({
-                to: bondify.address,
-                value:  ethers.utils.parseEther("120.0"),
-            });
-            try {
-                await bondify.connect(buyer).excersizeBond(1);
-            } catch (error) {
-                expect(error.message).to.contain('transfer caller is not owner nor approved');
-            }
-           
-
-        });
-
-        it('should work when bond is transferred between users and new user tries to  excersize', async () => {
-            let Bondify, bondify, issuer, buyer, buyer2;
-            Bondify = await ethers.getContractFactory("Bondify");
-            bondify = await Bondify.deploy();
-            [issuer, buyer, buyer2] = await ethers.getSigners();
-            let bondId;
-            await network.provider.send("evm_setNextBlockTimestamp", [1000000000020]);
-            await network.provider.send("evm_mine");
-            bondId = await bondify.createBond(10, 11, 100000000025);
-            //use hardhat setTime to set time before running
-            await bondify.transferFrom(issuer.address, buyer.address, 1); //TODO: figure out why this fails if bondId is passed in
-            await bondify.transferFrom(buyer.address, buyer2.address, 1); // 
+            await bondify.connect(buyer).transferFrom(buyer.address, buyer2.address, 1); // 
             await issuer.sendTransaction({
                 to: bondify.address,
                 value:  ethers.utils.parseEther("120.0"),
@@ -131,9 +108,11 @@ describe('Bondify contract', () => {
             bondify = await Bondify.deploy();
             [issuer, buyer] = await ethers.getSigners();
             let bondId;
-            await network.provider.send("evm_setNextBlockTimestamp", [1000000000030]);
+            await network.provider.send("evm_setNextBlockTimestamp", [1000000000041]);
             await network.provider.send("evm_mine");
-            bondId = await bondify.createBond(10, 11, 100000000035);
+            bondId = await bondify.createBond(10, 11, 1000000000045);
+            await network.provider.send("evm_setNextBlockTimestamp", [1000000000050]);
+            await network.provider.send("evm_mine");
             //use hardhat setTime to set time before running
             bondify.transferFrom(issuer.address, buyer.address, 1); //TODO: figure out why this fails if bondId is passed in
             await issuer.sendTransaction({
@@ -155,7 +134,9 @@ describe('Bondify contract', () => {
             bondify = await Bondify.deploy();
             [issuer, buyer] = await ethers.getSigners();
             let bondId;
-            bondId = await bondify.createBond(10, 11, 1000000000);
+            await network.provider.send("evm_setNextBlockTimestamp", [1000000000055]);
+            await network.provider.send("evm_mine");
+            bondId = await bondify.createBond(10, 11, 1000000000060);
             await network.provider.send("evm_increaseTime", [5]);
             await network.provider.send("evm_mine");
             //use hardhat setTime to set time before running
@@ -163,7 +144,7 @@ describe('Bondify contract', () => {
             try {
                 await bondify.connect(buyer).excersizeBond(1);
             } catch(error) {
-                expect(error.message).to.contain('tried to get bond payout before bond expires!');
+                expect(error.message).to.contain('not enough funds deposited by issuer to honor bond');
             }
 
         });
