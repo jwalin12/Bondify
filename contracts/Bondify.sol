@@ -1,6 +1,7 @@
 pragma solidity ^0.8.7;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "hardhat/console.sol";
 
 
 
@@ -17,7 +18,7 @@ contract Bondify is ERC721URIStorage {
   mapping (uint256 => uint256) tokenIdToExpiryDate;
   mapping (address => uint256) ETHBalances;
 
-  constructor() public ERC721("Bond", "BOND") {
+  constructor() ERC721("Bond", "BOND") {
     tokenCounter = 0;
     }
 
@@ -28,9 +29,10 @@ contract Bondify is ERC721URIStorage {
   function createBond(uint256 principal,uint256 payout,uint256 expiryDate) external returns (uint256) {
     verifyBond(principal, payout, expiryDate);
     uint256 newItemId = tokenCounter;
+    console.log(newItemId);
     tokenCounter = tokenCounter + 1;
-    string memory bondURI = tokenURI(newItemId);
     _safeMint(msg.sender, newItemId);
+    string memory bondURI = tokenURI(newItemId);
     itemIdToSender[newItemId] = msg.sender;
     _setTokenURI(newItemId, bondURI);
     itemIdToTokenURI[newItemId] = bondURI;
@@ -43,7 +45,7 @@ contract Bondify is ERC721URIStorage {
   }
 
   function verifyBond(uint256 principal, uint256 payout, uint256 expiryDate) private view {
-    require(principal >0, 'principal cannot be 0');
+    require(principal >0, 'principal must be greater than 0');
     require(payout > principal, 'payout must be greater than principal');
     require(expiryDate > block.timestamp, 'bond must expire in the future');
   }
@@ -68,18 +70,20 @@ contract Bondify is ERC721URIStorage {
 
   }
 
-  function depositETH() external payable {
-    emit Deposit(msg.sender, msg.value);
-    ETHBalances[msg.sender] += msg.value;
-
+  receive() external payable {
+     ETHBalances[msg.sender] += msg.value;
+     emit Deposit(msg.sender, msg.value);
+ 
   }
 
-  function withdrawETH() external payable {
-    emit Withdrawal(msg.sender, msg.value);
-    ETHBalances[msg.sender] -= msg.value;
+  function withdraw() external payable {
+    address payable to = payable(msg.sender);
+    uint256 val = ETHBalances[msg.sender];
+    to.transfer(ETHBalances[msg.sender]);
+    ETHBalances[msg.sender] = 0;
+    emit Withdrawal(to, val);
 
   }
-
 
   //TODO: figure out collateral (use NFTs as collateral?)
 
