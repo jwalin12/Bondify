@@ -3,7 +3,7 @@ require("@atixlabs/hardhat-time-n-mine");
 require("solidity-coverage");
 require("dotenv").config();
 require("@nomiclabs/hardhat-waffle");
-
+require('hardhat-abi-exporter');
 
 
 // This is a sample Hardhat task. To learn how to create your own go to
@@ -29,5 +29,12 @@ module.exports = {
       url: process.env.ENDPOINT_URL,
       accounts: [`0x${process.env.ROPSTEN_PRIVATE_KEY}`]
     },
+  },
+  abiExporter: {
+    path: './data/abi',
+    clear: true,
+    flat: true,
+    spacing: 2,
+    pretty: true,
   },
 };
