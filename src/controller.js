@@ -1,7 +1,7 @@
-import * as web3 from 'web3';
-require('dotenv').config();
-const JSON = require('require');
+const web3 = require('web3');
 const fs = require('fs');
+require('dotenv').config();
+var Contract = require('web3-eth-contract');
 
 
 
@@ -11,18 +11,16 @@ const fs = require('fs');
 
 //Create and object and export it, usingw web3 wrapper. Let it's functions be used by the UI and 
 //initialize it based on url and stuff from env.
-
-
-
-
-
-export default class Controller {
-
-    constructor(pathToAbi) {
-        const rawdata = fs.readFileSync(pathToAbi);
-        const abi = JSON.parse(rawdata);
-        this.contract =  web3.eth.Contract(abi, env.process.ROPSTEN_ADDR);
-        
+let Controller = class {
+    constructor(pathToJSON) {
+        let contract;
+        let rawdata = fs.readFileSync(pathToJSON);
+        let json = JSON.parse(rawdata);
+        console.log(json);
+        this.contract = new Contract(json.abi, process.env.ROPSTEN_ADDR);
     }
 
 }
+
+
+exports.Controller = Controller;

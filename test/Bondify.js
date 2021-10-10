@@ -165,7 +165,7 @@ describe('Bondify contract', () => {
             Bondify = await ethers.getContractFactory("Bondify");
             bondify = await Bondify.deploy();
             [issuer, buyer] = await ethers.getSigners();
-            expect(issuer.sendTransaction({
+            expect(await issuer.sendTransaction({
                 to: bondify.address,
                 value: ethers.utils.parseEther("1.0"),
             })).to.emit('Deposit', 1000000000000000000);
@@ -177,6 +177,7 @@ describe('Bondify contract', () => {
 
 
 }
+
 
 
 
