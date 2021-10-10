@@ -1,6 +1,10 @@
 require("@nomiclabs/hardhat-waffle");
 require("@atixlabs/hardhat-time-n-mine");
 require("solidity-coverage");
+require("dotenv").config();
+require("@nomiclabs/hardhat-waffle");
+
+
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -20,4 +24,10 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
  */
 module.exports = {
   solidity: "0.8.7",
+  networks: {
+    ropsten: {
+      url: process.env.ENDPOINT_URL,
+      accounts: [`0x${process.env.ROPSTEN_PRIVATE_KEY}`]
+    },
+  },
 };
