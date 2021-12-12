@@ -36,7 +36,7 @@ edge cases -
   2. should fail when the bond has not expired
   3. should fail if there is not enough money in the smart contract
 
-### Deposit and Withdrawal - Tests if you can successfully deposite nad withdraw money
+### Deposit and Withdrawal - Tests if you can successfully deposit and withdraw money
 
 
 Try running some of the following tasks:
